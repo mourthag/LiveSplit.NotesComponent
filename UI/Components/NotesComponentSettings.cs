@@ -20,6 +20,7 @@ namespace LiveSplit.UI.Components
         public LayoutMode Mode { get; set; }
 
         public string FilePath { get; set; }
+        public bool FilePathChanged { get; set; }
 
         public Color BackgroundColor { get; set; }
         public Color LevelUpBgColor { get; set; }
@@ -44,8 +45,9 @@ namespace LiveSplit.UI.Components
             CurrentState = state;
 
             FilePath = "";
+            FilePathChanged = true;
 
-            BackgroundColor = Color.Transparent;
+            BackgroundColor = Color.Black;
 
             LevelUpTxtColor = Color.FromArgb(255,255,255);
             ItemTrackingTxtColor = Color.FromArgb(255, 255, 255);
@@ -55,28 +57,28 @@ namespace LiveSplit.UI.Components
             SkipTxtColor = Color.FromArgb(255, 255, 255);
             TrophyTxtColor = Color.FromArgb(255, 255, 255);
 
-            LevelUpBgColor = Color.DeepSkyBlue;
-            ItemTrackingBgColor = Color.DarkViolet;
-            TeleportBgColor = Color.Gold;
-            DropBgColor = Color.Gray;
+            LevelUpBgColor = Color.Blue;
+            ItemTrackingBgColor = Color.Violet;
+            TeleportBgColor = Color.Yellow;
+            DropBgColor = Color.Pink;
             KillBgColor = Color.Red;
-            SkipBgColor = Color.SandyBrown;
+            SkipBgColor = Color.Brown;
             TrophyBgColor = Color.Green;
 
-            btnClrLvlupTxt.DataBindings.Add("LevelUpTextColor", this, "LevelUpTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrLvlupBg.DataBindings.Add("LevelUpBackgroundColor", this, "LevelUpBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrItemTxt.DataBindings.Add("ItemTrackingTextColor", this, "ItemTrackingTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrItemBg.DataBindings.Add("ItemTrakingBackgroundColor", this, "ItemTrackingBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrTpTxt.DataBindings.Add("TeleportTextColor", this, "TeleportTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrTpBg.DataBindings.Add("TeleportBackgroundColor", this, "TeleportBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrDrpTxt.DataBindings.Add("DropTextColor", this, "DropTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrDrpBg.DataBindings.Add("DropBackgroundColor", this, "DropBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrKllBg.DataBindings.Add("KillTextColor", this, "KillTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrKillTxt.DataBindings.Add("KillBackgroundColor", this, "KillBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrSkpTxt.DataBindings.Add("SkipTextColor", this, "SkipTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrSkpBg.DataBindings.Add("SkipBackgroundColor", this, "SkipBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrTrphyTxt.DataBindings.Add("TrophyTextColor", this, "TrophyTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrTrphyBg.DataBindings.Add("TrophyBackgroundColor", this, "TrophyBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrLvlupTxt.DataBindings.Add("BackColor", this, "LevelUpTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrLvlupBg.DataBindings.Add("BackColor", this, "LevelUpBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrItemTxt.DataBindings.Add("BackColor", this, "ItemTrackingTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrItemBg.DataBindings.Add("BackColor", this, "ItemTrackingBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrTpTxt.DataBindings.Add("BackColor", this, "TeleportTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrTpBg.DataBindings.Add("BackColor", this, "TeleportBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrDrpTxt.DataBindings.Add("BackColor", this, "DropTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrDrpBg.DataBindings.Add("BackColor", this, "DropBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrKillTxt.DataBindings.Add("BackColor", this, "KillTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrKllBg.DataBindings.Add("BackColor", this, "KillBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrSkpTxt.DataBindings.Add("BackColor", this, "SkipTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrSkpBg.DataBindings.Add("BackColor", this, "SkipBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrTrphyTxt.DataBindings.Add("BackColor", this, "TrophyTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrTrphyBg.DataBindings.Add("BackColor", this, "TrophyBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
 
         }
 
@@ -146,7 +148,7 @@ namespace LiveSplit.UI.Components
         private void button1_Click(object sender, EventArgs e)
         {
             OpenFileDialog loadNotesDialog = new OpenFileDialog();
-            loadNotesDialog.Filter = "Textdateien|*.txt";
+            loadNotesDialog.Filter = "Textfiles|*.txt";
             loadNotesDialog.Multiselect = false;
             loadNotesDialog.Title = "Select notes";
             if(loadNotesDialog.ShowDialog() == DialogResult.OK)
@@ -158,10 +160,13 @@ namespace LiveSplit.UI.Components
                     if ((stream = loadNotesDialog.OpenFile()) != null)
                     {
                         FilePath = Path.GetFullPath(loadNotesDialog.FileName);
+                        FilePathChanged = true;
                     }
                 }
                 catch (Exception ex)
-                { }
+                {
+                    MessageBox.Show(ex.ToString());
+                }
             }
         }
     }

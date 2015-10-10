@@ -8,13 +8,16 @@ using System.Windows.Forms;
 using System.Xml;
 using LiveSplit.Model;
 using System.Drawing.Drawing2D;
+using LiveSplit.Utility;
 
 namespace LiveSplit.UI.Components
 {
     class NotesComponent : IComponent
     {
         public NotesComponentSettings Settings { get; set; }
-        public ComponentRendererComponent InternalComponent { get; protected set; }
+        public SplitNotes currentNode { get; protected set; }
+        
+        List<SplitNotes> loadedNotes = new List<SplitNotes>();
 
         public string ComponentName => "Notes";
 
@@ -26,24 +29,25 @@ namespace LiveSplit.UI.Components
             {
                 CurrentState = state
             };
-            InternalComponent = new ComponentRendererComponent();
+            readFile();
+            currentNode = loadedNotes.First();
         }
 
-        public float HorizontalWidth => InternalComponent.HorizontalWidth;
+        public float HorizontalWidth => currentNode.HorizontalWidth;
 
-        public float MinimumHeight => InternalComponent.MinimumHeight;
+        public float MinimumHeight => currentNode.MinimumHeight;
 
-        public float MinimumWidth => InternalComponent.HorizontalWidth;
+        public float MinimumWidth => currentNode.HorizontalWidth;
 
-        public float PaddingBottom => InternalComponent.PaddingBottom;
+        public float PaddingBottom => currentNode.PaddingBottom;
 
-        public float PaddingLeft => InternalComponent.PaddingLeft;
+        public float PaddingLeft => currentNode.PaddingLeft;
 
-        public float PaddingRight => InternalComponent.PaddingRight;
+        public float PaddingRight => currentNode.PaddingRight;
 
-        public float PaddingTop => InternalComponent.PaddingTop;
+        public float PaddingTop => currentNode.PaddingTop;
 
-        public float VerticalHeight => InternalComponent.VerticalHeight;
+        public float VerticalHeight => currentNode.VerticalHeight;
 
         public void Dispose()
         {
@@ -51,22 +55,12 @@ namespace LiveSplit.UI.Components
 
         public void DrawHorizontal(Graphics g, LiveSplitState state, float height, Region clipRegion)
         {
+            currentNode.DrawHorizontal(g, state, height, clipRegion);
         }
 
         public void DrawVertical(Graphics g, LiveSplitState state, float width, Region clipRegion)
         {
-            
-        }
-
-        void DrawBackground(Graphics g, float width, float height)
-        {
-            var brush = new LinearGradientBrush(
-                new PointF(0, 0),
-                new PointF(width, height),
-                Settings.BackgroundColor,
-                Settings.BackgroundColor);
-            g.FillRectangle(brush, 0, 0, width, height);
-                );
+            currentNode.DrawVertical(g, state, width, clipRegion);
         }
 
         public XmlNode GetSettings(XmlDocument document)
@@ -87,11 +81,60 @@ namespace LiveSplit.UI.Components
 
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
+            if (Settings.FilePathChanged)
+                readFile();
+
+            if (state.CurrentSplit.Name != currentNode.Name)
+                checkCurrentSplit(state);
         }
 
         public void readFile()
         {
+            loadedNotes.Clear();
+
+            List<string> lines = TxtHelper.readFile(Settings.FilePath);
+
+            List<String> curSplitSection = new List<string>();
             
+            int? curSplitStart = null;
+            int? curSplitEnd  = null;
+
+            int index = 0;
+
+            foreach (string curLine in lines)
+            {
+                if (curLine.Contains("----------"))
+                {
+                    if (curSplitStart == null && curSplitEnd == null)
+                        curSplitStart = index+1;
+
+                    else if (curSplitStart != null && curSplitEnd == null)
+                    {
+                        curSplitSection = lines.GetRange(curSplitStart.Value, curSplitEnd.Value - curSplitStart.Value - 1);
+
+                        loadedNotes.Add(new SplitNotes(curSplitSection, Settings));
+
+                        curSplitStart = null;
+                        curSplitEnd = null;
+                    }
+                }
+
+                index++;
+            }
+            Settings.FilePathChanged = false;
+        }
+
+        void checkCurrentSplit(LiveSplitState state)
+        {
+            foreach (SplitNotes curSplitNote in loadedNotes)
+            {
+                if (state.CurrentSplit.Name == curSplitNote.Name)
+                {
+                    currentNode = curSplitNote;
+                }
+
+            }
+
         }
     }
 }
