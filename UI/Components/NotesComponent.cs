@@ -9,6 +9,7 @@ using System.Xml;
 using LiveSplit.Model;
 using System.Drawing.Drawing2D;
 using LiveSplit.Utility;
+using System.IO;
 
 namespace LiveSplit.UI.Components
 {
@@ -30,7 +31,6 @@ namespace LiveSplit.UI.Components
                 CurrentState = state
             };
             readFile();
-            currentNode = loadedNotes.First();
         }
 
         public float HorizontalWidth => currentNode.HorizontalWidth;

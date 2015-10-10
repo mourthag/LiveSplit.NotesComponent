@@ -17,11 +17,11 @@ namespace LiveSplit.UI.Components
 
         public string ComponentName => "Note";
 
-        public float HorizontalWidth { get; set; }
+        public float HorizontalWidth => 200f;
 
         public float MinimumHeight { get; set; }
 
-        public float VerticalHeight { get; set; }
+        public float VerticalHeight => 50f;
 
         public float MinimumWidth { get; set; }
 
