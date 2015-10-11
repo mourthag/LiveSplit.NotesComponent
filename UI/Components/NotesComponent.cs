@@ -93,6 +93,8 @@ namespace LiveSplit.UI.Components
 
             if (Settings.FilePath == "")
             {
+                List<string> emptyList = new List<string>();
+                currentNode = new SplitNotes(emptyList, Settings);
                 return;
             }
             List<string> lines = TxtHelper.readFile(Settings.FilePath);
