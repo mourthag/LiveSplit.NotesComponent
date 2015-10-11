@@ -17,11 +17,11 @@ namespace LiveSplit.UI.Components
 
         public string ComponentName => "Note";
 
-        public float HorizontalWidth => 200f;
+        public float HorizontalWidth { get; set; }
 
         public float MinimumHeight { get; set; }
 
-        public float VerticalHeight => 50f;
+        public float VerticalHeight { get; set; }
 
         public float MinimumWidth { get; set; }
 
@@ -45,6 +45,9 @@ namespace LiveSplit.UI.Components
             Settings = settings;
             Type = type;
             Text = note;
+
+            VerticalHeight = 10f;
+            HorizontalWidth = 100f;
 
             switch (type)
             {
@@ -85,6 +88,7 @@ namespace LiveSplit.UI.Components
 
         public void DrawHorizontal(Graphics g, LiveSplitState state, float height, Region clipRegion)
         {
+            HorizontalWidth = g.MeasureString(Text, state.LayoutSettings.TextFont).Width;
             DrawBackgorund(g, HorizontalWidth, height);
             var textBrush = new SolidBrush(txtColor);
             g.DrawString(Text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));
@@ -92,6 +96,7 @@ namespace LiveSplit.UI.Components
 
         public void DrawVertical(Graphics g, LiveSplitState state, float width, Region clipRegion)
         {
+            VerticalHeight = state.LayoutSettings.TextFont.GetHeight(g);
             DrawBackgorund(g, width, VerticalHeight);
             var textBrush = new SolidBrush(txtColor);
             g.DrawString(Text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));
