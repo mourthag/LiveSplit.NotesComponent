@@ -86,11 +86,15 @@ namespace LiveSplit.UI.Components
         public void DrawHorizontal(Graphics g, LiveSplitState state, float height, Region clipRegion)
         {
             DrawBackgorund(g, HorizontalWidth, height);
+            var textBrush = new SolidBrush(txtColor);
+            g.DrawString(Text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));
         }
 
         public void DrawVertical(Graphics g, LiveSplitState state, float width, Region clipRegion)
         {
             DrawBackgorund(g, width, VerticalHeight);
+            var textBrush = new SolidBrush(txtColor);
+            g.DrawString(Text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));
         }
 
         void DrawBackgorund(Graphics g, float width, float height)
@@ -99,16 +103,19 @@ namespace LiveSplit.UI.Components
             g.FillRectangle(bgBrush, 0, 0, width, height);
         }
 
-        public Control GetSettingsControl(LayoutMode mode) => null;
+        public Control GetSettingsControl(LayoutMode mode)
+        {
+            throw new NotSupportedException();
+        }
 
         public XmlNode GetSettings(XmlDocument document)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public void SetSettings(XmlNode settings)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)

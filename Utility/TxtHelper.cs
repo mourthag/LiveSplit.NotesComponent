@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Windows.Forms;
 
 namespace LiveSplit.Utility
 {
@@ -17,6 +18,7 @@ namespace LiveSplit.Utility
             }
             catch (FileNotFoundException e)
             {
+                MessageBox.Show(e.ToString());
                 return null;
             }
 

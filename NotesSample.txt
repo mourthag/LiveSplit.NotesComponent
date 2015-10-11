@@ -1,0 +1,24 @@
+----------
+!!!SplitName
+
+>>>Levelup/Attunement
+$$$Item Tracking
+<<<Warp
+---Drop
+&&&Kill
+///Skip
+###Tropy
+Any other Comment
+----------
+
+Will not be detected
+Lines must be at least ten "-" to be recognized as splitstart/end
+
+---------------
+!!!NextSplit
+
+Start as Thief with Firebombs
+---Drop: Straight Sword Hilt
+&&&Kill: Asylum Demon with Firebombs
+$$$Get RTSR
+----------------

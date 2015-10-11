@@ -19,6 +19,7 @@ namespace LiveSplit.UI.Components
         public SplitNotes(List<String> notes, NotesComponentSettings settings)
         {
             Settings = settings;
+            Name = "";
 
             foreach (string curNote in notes)
             {
@@ -26,17 +27,17 @@ namespace LiveSplit.UI.Components
                 {
                     string strType = curNote.Substring(0, 3);
                     NoteType type = NoteType.Comment;
-                    string note = curNote.Substring(3, curNote.Length);
+                    string note = curNote.Substring(0, curNote.Length);
 
                     switch (strType) {
                         case "!!!":
-                            Name = curNote.Substring(3, curNote.Length);
+                            Name = curNote.Substring(3, curNote.Length - 3);
                             type = NoteType.Title;
                             break;
                         case ">>>":
                             type = NoteType.LevelUp;
                             break;
-                        case "§§§":
+                        case "$$$":
                             type = NoteType.ItemTracking;
                             break;
                         case "<<<":
@@ -57,7 +58,7 @@ namespace LiveSplit.UI.Components
                     }
 
                     if(type != NoteType.Comment)
-                        note = curNote.Substring(3, curNote.Length);
+                        note = curNote.Substring(3, curNote.Length - 3);
 
                     Notes.Add(new Note(type, note, Settings));
                 }

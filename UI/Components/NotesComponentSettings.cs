@@ -79,7 +79,7 @@ namespace LiveSplit.UI.Components
             btnClrSkpBg.DataBindings.Add("BackColor", this, "SkipBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
             btnClrTrphyTxt.DataBindings.Add("BackColor", this, "TrophyTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
             btnClrTrphyBg.DataBindings.Add("BackColor", this, "TrophyBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
-
+            filePathTxtBox.DataBindings.Add("Text", this, "FilePath", false, DataSourceUpdateMode.OnPropertyChanged);
         }
 
         void NotesComponentSettings_Load(object sender, EventArgs e)
@@ -159,7 +159,7 @@ namespace LiveSplit.UI.Components
                 {
                     if ((stream = loadNotesDialog.OpenFile()) != null)
                     {
-                        FilePath = Path.GetFullPath(loadNotesDialog.FileName);
+                        FilePath = loadNotesDialog.FileName;
                         FilePathChanged = true;
                     }
                 }

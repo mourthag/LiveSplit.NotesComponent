@@ -31,6 +31,9 @@ namespace LiveSplit.UI.Components
         private void InitializeComponent()
         {
             this.mainTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            this.button1 = new System.Windows.Forms.Button();
+            this.filePathTxtBox = new System.Windows.Forms.TextBox();
             this.colorsGroupBox = new System.Windows.Forms.GroupBox();
             this.label16 = new System.Windows.Forms.Label();
             this.btnClrTrphyBg = new System.Windows.Forms.Button();
@@ -65,8 +68,8 @@ namespace LiveSplit.UI.Components
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.button2 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
             this.mainTableLayout.SuspendLayout();
+            this.tableLayoutPanel2.SuspendLayout();
             this.colorsGroupBox.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
@@ -75,9 +78,9 @@ namespace LiveSplit.UI.Components
             // 
             this.mainTableLayout.ColumnCount = 1;
             this.mainTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.mainTableLayout.Controls.Add(this.tableLayoutPanel2, 0, 2);
             this.mainTableLayout.Controls.Add(this.colorsGroupBox, 0, 1);
             this.mainTableLayout.Controls.Add(this.tableLayoutPanel1, 0, 0);
-            this.mainTableLayout.Controls.Add(this.button1, 0, 2);
             this.mainTableLayout.Location = new System.Drawing.Point(0, 0);
             this.mainTableLayout.Name = "mainTableLayout";
             this.mainTableLayout.RowCount = 4;
@@ -87,6 +90,41 @@ namespace LiveSplit.UI.Components
             this.mainTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.mainTableLayout.Size = new System.Drawing.Size(601, 525);
             this.mainTableLayout.TabIndex = 0;
+            // 
+            // tableLayoutPanel2
+            // 
+            this.tableLayoutPanel2.ColumnCount = 1;
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel2.Controls.Add(this.button1, 0, 1);
+            this.tableLayoutPanel2.Controls.Add(this.filePathTxtBox, 0, 0);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 425);
+            this.tableLayoutPanel2.Name = "tableLayoutPanel2";
+            this.tableLayoutPanel2.RowCount = 2;
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(595, 76);
+            this.tableLayoutPanel2.TabIndex = 25;
+            // 
+            // button1
+            // 
+            this.button1.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.button1.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.button1.Location = new System.Drawing.Point(247, 45);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(100, 23);
+            this.button1.TabIndex = 3;
+            this.button1.Text = "Load notes";
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // filePathTxtBox
+            // 
+            this.filePathTxtBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.filePathTxtBox.Location = new System.Drawing.Point(3, 8);
+            this.filePathTxtBox.Name = "filePathTxtBox";
+            this.filePathTxtBox.Size = new System.Drawing.Size(589, 22);
+            this.filePathTxtBox.TabIndex = 4;
             // 
             // colorsGroupBox
             // 
@@ -464,19 +502,6 @@ namespace LiveSplit.UI.Components
             this.label1.Text = "BackgroundColor";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // button1
-            // 
-            this.button1.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.button1.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.button1.Location = new System.Drawing.Point(250, 451);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(100, 23);
-            this.button1.TabIndex = 3;
-            this.button1.Text = "Load notes";
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
             // NotesComponentSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -485,6 +510,8 @@ namespace LiveSplit.UI.Components
             this.Name = "NotesComponentSettings";
             this.Size = new System.Drawing.Size(601, 525);
             this.mainTableLayout.ResumeLayout(false);
+            this.tableLayoutPanel2.ResumeLayout(false);
+            this.tableLayoutPanel2.PerformLayout();
             this.colorsGroupBox.ResumeLayout(false);
             this.colorsGroupBox.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);
@@ -531,5 +558,7 @@ namespace LiveSplit.UI.Components
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Button btnClrSkpTxt;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
+        private System.Windows.Forms.TextBox filePathTxtBox;
     }
 }

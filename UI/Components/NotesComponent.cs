@@ -92,6 +92,10 @@ namespace LiveSplit.UI.Components
         {
             loadedNotes.Clear();
 
+            if (Settings.FilePath == "")
+            {
+                return;
+            }
             List<string> lines = TxtHelper.readFile(Settings.FilePath);
 
             List<String> curSplitSection = new List<string>();
@@ -110,7 +114,8 @@ namespace LiveSplit.UI.Components
 
                     else if (curSplitStart != null && curSplitEnd == null)
                     {
-                        curSplitSection = lines.GetRange(curSplitStart.Value, curSplitEnd.Value - curSplitStart.Value - 1);
+                        curSplitEnd = index;
+                        curSplitSection = lines.GetRange(curSplitStart.Value, curSplitEnd.Value - curSplitStart.Value);
 
                         loadedNotes.Add(new SplitNotes(curSplitSection, Settings));
 
@@ -118,9 +123,9 @@ namespace LiveSplit.UI.Components
                         curSplitEnd = null;
                     }
                 }
-
                 index++;
             }
+            currentNode = loadedNotes.First();
             Settings.FilePathChanged = false;
         }
 
