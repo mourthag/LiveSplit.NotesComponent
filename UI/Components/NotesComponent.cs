@@ -84,8 +84,7 @@ namespace LiveSplit.UI.Components
             if (Settings.FilePathChanged)
                 readFile();
 
-            if (state.CurrentSplit.Name != currentNode.Name)
-                checkCurrentSplit(state);
+            checkCurrentSplit(state);
         }
 
         public void readFile()
@@ -131,6 +130,11 @@ namespace LiveSplit.UI.Components
 
         void checkCurrentSplit(LiveSplitState state)
         {
+            if (state.CurrentSplit == null)
+            {
+                currentNode = loadedNotes.First();
+                return;
+            }
             foreach (SplitNotes curSplitNote in loadedNotes)
             {
                 if (state.CurrentSplit.Name == curSplitNote.Name)
