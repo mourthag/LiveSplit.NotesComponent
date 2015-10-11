@@ -97,6 +97,7 @@ namespace LiveSplit.UI.Components
         public void DrawVertical(Graphics g, LiveSplitState state, float width, Region clipRegion)
         {
             VerticalHeight = state.LayoutSettings.TextFont.GetHeight(g);
+            MinimumWidth = g.MeasureString(Text, state.LayoutSettings.TextFont).Width;
             DrawBackgorund(g, width, VerticalHeight);
             var textBrush = new SolidBrush(txtColor);
             g.DrawString(Text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));

@@ -161,6 +161,7 @@ namespace LiveSplit.UI.Components
                     {
                         FilePath = loadNotesDialog.FileName;
                         FilePathChanged = true;
+                        filePathTxtBox.Text = FilePath;
                     }
                 }
                 catch (Exception ex)

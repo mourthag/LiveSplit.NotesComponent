@@ -30,6 +30,8 @@ namespace LiveSplit.Utility
                 result.Add( currentLine);
             }
 
+            inputStream.Close();
+
             return result;
         }
     }
