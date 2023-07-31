@@ -8,6 +8,6 @@
 - 
   Download a release here: <a>https://github.com/mourthag/LiveSplit.NotesComponent/releases</a> and unzip it. Then place the .dll in the Components Folder of your LiveSplit-installation.
 
-- Why does this doesn't work?/I think XYZ would be better!
+- Why doesn't this work?/I think XYZ would be better!
 - 
   Contact me on <a href="mailto:mourthag@googlemail.com">mourthag@gmail.com</a>!
