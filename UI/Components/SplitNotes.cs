@@ -12,6 +12,8 @@ namespace LiveSplit.UI.Components
 {
     class SplitNotes : ComponentRendererComponent
     {
+        private const int EmptyNoteLineCount = 1;
+
         public string Name;
         List<Note> Notes = new List<Note>();
         NotesComponentSettings Settings;
@@ -31,9 +33,10 @@ namespace LiveSplit.UI.Components
 
                     switch (strType) {
                         case "!!!":
-                            Name = curNote.Substring(3, curNote.Length - 3);
-                            type = NoteType.Title;
-                            break;
+                            Name = curNote.Substring(3, curNote.Length - 3).Trim();
+                            continue; // Split-Header nur zur Zuordnung, nicht als Note rendern
+                        case "%%%":
+                            continue; // Kommentarzeile im Notes-File komplett ignorieren
                         case ">>>":
                             type = NoteType.LevelUp;
                             break;
@@ -58,10 +61,16 @@ namespace LiveSplit.UI.Components
                     }
 
                     if(type != NoteType.Comment)
-                        note = curNote.Substring(3, curNote.Length - 3);
+                        note = curNote.Substring(3, curNote.Length - 3).Trim();
 
                     Notes.Add(new Note(type, note, Settings));
                 }
+            }
+
+            if (Notes.Count == 0)
+            {
+                for (int i = 0; i < EmptyNoteLineCount; i++)
+                    Notes.Add(new Note(NoteType.Comment, "", Settings));
             }
 
             VisibleComponents = Notes;

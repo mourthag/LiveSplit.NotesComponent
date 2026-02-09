@@ -47,7 +47,7 @@ namespace LiveSplit.UI.Components
             Text = note;
 
             VerticalHeight = 10f;
-            HorizontalWidth = 100f;
+            HorizontalWidth = 50f;
 
             switch (type)
             {

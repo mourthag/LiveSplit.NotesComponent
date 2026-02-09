@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net481</TargetFramework>
     <OutputType>Library</OutputType>
-    <RootNamespace>LiveSplit</RootNamespace>
+    <RootNamespace>LiveSplit.NotesComponent</RootNamespace>
     <AssemblyName>LiveSplit.NotesComponent</AssemblyName>
     <LangVersion>latest</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -48,6 +48,7 @@
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
+      <CustomToolNamespace>LiveSplit.NotesComponent.Properties</CustomToolNamespace>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -59,6 +60,7 @@
   <ItemGroup>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>LiveSplit.NotesComponent.Properties</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>

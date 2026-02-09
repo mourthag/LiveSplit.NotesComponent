@@ -17,6 +17,8 @@ namespace LiveSplit.UI.Components
     {
         public NotesComponentSettings Settings { get; set; }
         public SplitNotes currentNode { get; protected set; }
+
+        private SplitNotes _emptyNode;
         
         List<SplitNotes> loadedNotes = new List<SplitNotes>();
 
@@ -30,6 +32,8 @@ namespace LiveSplit.UI.Components
             {
                 CurrentState = state
             };
+
+            _emptyNode = new SplitNotes(new List<string>(), Settings);
             readFile();
         }
 
@@ -37,7 +41,7 @@ namespace LiveSplit.UI.Components
 
         public float MinimumHeight => currentNode.MinimumHeight;
 
-        public float MinimumWidth => currentNode.HorizontalWidth;
+        public float MinimumWidth => currentNode.MinimumWidth;
 
         public float PaddingBottom => currentNode.PaddingBottom;
 
@@ -93,8 +97,7 @@ namespace LiveSplit.UI.Components
 
             if (Settings.FilePath == "")
             {
-                List<string> emptyList = new List<string>();
-                currentNode = new SplitNotes(emptyList, Settings);
+                currentNode = _emptyNode;
                 return;
             }
             List<string> lines = TxtHelper.readFile(Settings.FilePath);
@@ -126,25 +129,32 @@ namespace LiveSplit.UI.Components
                 }
                 index++;
             }
-            currentNode = loadedNotes.First();
+
+            currentNode = loadedNotes.FirstOrDefault() ?? _emptyNode;
             Settings.FilePathChanged = false;
         }
 
         void checkCurrentSplit(LiveSplitState state)
         {
-            if (state.CurrentSplit == null)
+            if (loadedNotes.Count == 0)
             {
-                currentNode = loadedNotes.First();
+                if (!ReferenceEquals(currentNode, _emptyNode))
+                    currentNode = _emptyNode;
                 return;
             }
-            foreach (SplitNotes curSplitNote in loadedNotes)
-            {
-                if (state.CurrentSplit.Name == curSplitNote.Name)
-                {
-                    currentNode = curSplitNote;
-                }
 
+            if (state.CurrentSplit == null)
+            {
+                var first = loadedNotes.FirstOrDefault() ?? _emptyNode;
+                if (!ReferenceEquals(currentNode, first))
+                    currentNode = first;
+                return;
             }
+
+            var match = loadedNotes.FirstOrDefault(x => x.Name == state.CurrentSplit.Name);
+            var next = match ?? _emptyNode;
+            if (!ReferenceEquals(currentNode, next))
+                currentNode = next;
 
         }
     }
