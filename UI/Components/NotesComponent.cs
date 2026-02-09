@@ -13,19 +13,47 @@ using System.IO;
 
 namespace LiveSplit.UI.Components
 {
+    /// <summary>
+    /// LiveSplit component that displays per-split notes read from a text file.
+    /// </summary>
+    /// <remarks>
+    /// File format (high level):
+    /// - Sections are delimited by lines that contain "----------".
+    /// - Inside a section, an optional header line "!!!SplitName" binds the section to a split.
+    /// - Lines may start with a 3-char marker (e.g. ">>>", "###") to set a note type.
+    /// - Sections without "!!!" can be mapped either to the first splits (leading sections)
+    ///   or to splits following the last explicit "!!!" header.
+    /// </remarks>
     class NotesComponent : IComponent
     {
+        /// <summary>
+        /// Settings control for this component (file path, colors, etc.).
+        /// </summary>
         public NotesComponentSettings Settings { get; set; }
+
+        /// <summary>
+        /// The currently active node (notes section) to be rendered.
+        /// </summary>
         public SplitNotes currentNode { get; protected set; }
 
+        /// <summary>
+        /// Reusable empty node to avoid re-allocations / flicker when a split has no notes.
+        /// </summary>
         private SplitNotes _emptyNode;
         
+        /// <summary>
+        /// All parsed note sections from the notes file.
+        /// </summary>
         List<SplitNotes> loadedNotes = new List<SplitNotes>();
 
         public string ComponentName => "Notes";
 
         public IDictionary<string, Action> ContextMenuControls => null;
 
+        /// <summary>
+        /// Creates the component and loads the notes file.
+        /// </summary>
+        /// <param name="state">Current LiveSplit state.</param>
         public NotesComponent(LiveSplitState state)
         {
             Settings = new NotesComponentSettings(state)
@@ -88,9 +116,13 @@ namespace LiveSplit.UI.Components
             if (Settings.FilePathChanged)
                 readFile();
 
+            // Select the node to show based on the current split.
             checkCurrentSplit(state);
         }
 
+        /// <summary>
+        /// Reads and parses the configured notes file into <see cref="loadedNotes"/>.
+        /// </summary>
         public void readFile()
         {
             loadedNotes.Clear();
@@ -130,7 +162,8 @@ namespace LiveSplit.UI.Components
                 index++;
             }
 
-            // Map sections without !!! to the split(s) after the last explicit !!! section
+            // Map sections without !!! to the split(s) after the last explicit !!! section.
+            // Additionally: leading unnamed sections (before the first !!!) map to the first splits.
             string lastExplicit = null;
             int afterOffset = 0;
             bool sawExplicit = false;
@@ -157,6 +190,8 @@ namespace LiveSplit.UI.Components
                     continue;
                 }
 
+                // After an explicit !!! header: the first unnamed section maps to the next split,
+                // the second unnamed section to the split after that, etc.
                 if (!string.IsNullOrWhiteSpace(lastExplicit))
                 {
                     afterOffset++;
@@ -198,6 +233,11 @@ namespace LiveSplit.UI.Components
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Updates <see cref="currentNode"/> to match the current split.
+        /// Falls back to <see cref="_emptyNode"/> when no notes exist for a split.
+        /// </summary>
+        /// <param name="state">Current LiveSplit state.</param>
         void checkCurrentSplit(LiveSplitState state)
         {
             if (loadedNotes.Count == 0)
@@ -225,6 +265,7 @@ namespace LiveSplit.UI.Components
             // 2) If no explicit match: use section(s) that are defined "after" a split (unnamed sections)
             if (match == null && state.Run != null)
             {
+                // Determine the index of the current split in the run.
                 int currentIndex = -1;
                 for (int i = 0; i < state.Run.Count; i++)
                 {
@@ -248,6 +289,7 @@ namespace LiveSplit.UI.Components
                         if (string.IsNullOrWhiteSpace(x.AfterSplitName) || x.AfterSplitOffset <= 0)
                             return false;
 
+                        // "AfterSplitOffset" describes how far the target split is after the anchor split.
                         int anchorIndex = currentIndex - x.AfterSplitOffset;
                         if (anchorIndex < 0 || anchorIndex >= state.Run.Count)
                             return false;
@@ -263,6 +305,7 @@ namespace LiveSplit.UI.Components
 
         MatchDone:
 
+            // Final fallback: no notes found for this split.
             var next = match ?? _emptyNode;
             if (!ReferenceEquals(currentNode, next))
                 currentNode = next;
