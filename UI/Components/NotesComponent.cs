@@ -1,15 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Xml;
+using System.Windows.Forms;
 using LiveSplit.Model;
-using System.Drawing.Drawing2D;
 using LiveSplit.Utility;
-using System.IO;
 
 namespace LiveSplit.UI.Components
 {
@@ -24,7 +21,7 @@ namespace LiveSplit.UI.Components
     /// - Sections without "!!!" can be mapped either to the first splits (leading sections)
     ///   or to splits following the last explicit "!!!" header.
     /// </remarks>
-    class NotesComponent : IComponent
+    internal class NotesComponent : IComponent
     {
         /// <summary>
         /// Settings control for this component (file path, colors, etc.).
@@ -34,17 +31,17 @@ namespace LiveSplit.UI.Components
         /// <summary>
         /// The currently active node (notes section) to be rendered.
         /// </summary>
-        public SplitNotes currentNode { get; protected set; }
+        public SplitNotes CurrentNode { get; protected set; }
 
         /// <summary>
         /// Reusable empty node to avoid re-allocations / flicker when a split has no notes.
         /// </summary>
-        private SplitNotes _emptyNode;
-        
+        private readonly SplitNotes _emptyNode;
+
         /// <summary>
         /// All parsed note sections from the notes file.
         /// </summary>
-        List<SplitNotes> loadedNotes = new List<SplitNotes>();
+        private readonly List<SplitNotes> _loadedNotes = new List<SplitNotes>();
 
         public string ComponentName => "Notes";
 
@@ -62,37 +59,44 @@ namespace LiveSplit.UI.Components
             };
 
             _emptyNode = new SplitNotes(new List<string>(), Settings);
-            readFile();
+            ReadFile();
         }
 
-        public float HorizontalWidth => currentNode.HorizontalWidth;
+        public float HorizontalWidth => CurrentNode.HorizontalWidth;
 
-        public float MinimumHeight => currentNode.MinimumHeight;
+        public float MinimumHeight => CurrentNode.MinimumHeight;
 
-        public float MinimumWidth => currentNode.MinimumWidth;
+        public float MinimumWidth => CurrentNode.MinimumWidth;
 
-        public float PaddingBottom => currentNode.PaddingBottom;
+        public float PaddingBottom => CurrentNode.PaddingBottom;
 
-        public float PaddingLeft => currentNode.PaddingLeft;
+        public float PaddingLeft => CurrentNode.PaddingLeft;
 
-        public float PaddingRight => currentNode.PaddingRight;
+        public float PaddingRight => CurrentNode.PaddingRight;
 
-        public float PaddingTop => currentNode.PaddingTop;
+        public float PaddingTop => CurrentNode.PaddingTop;
 
-        public float VerticalHeight => currentNode.VerticalHeight;
+        public float VerticalHeight => CurrentNode.VerticalHeight;
 
         public void Dispose()
         {
+            foreach (var node in _loadedNotes)
+            {
+                foreach (var comp in node.VisibleComponents ?? Enumerable.Empty<IComponent>())
+                    comp.Dispose();
+            }
+
+            _loadedNotes.Clear();
         }
 
         public void DrawHorizontal(Graphics g, LiveSplitState state, float height, Region clipRegion)
         {
-            currentNode.DrawHorizontal(g, state, height, clipRegion);
+            CurrentNode.DrawHorizontal(g, state, height, clipRegion);
         }
 
         public void DrawVertical(Graphics g, LiveSplitState state, float width, Region clipRegion)
         {
-            currentNode.DrawVertical(g, state, width, clipRegion);
+            CurrentNode.DrawVertical(g, state, width, clipRegion);
         }
 
         public XmlNode GetSettings(XmlDocument document)
@@ -114,30 +118,46 @@ namespace LiveSplit.UI.Components
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
             if (Settings.FilePathChanged)
-                readFile();
+                ReadFile();
 
             // Select the node to show based on the current split.
-            checkCurrentSplit(state);
+            CheckCurrentSplit(state);
         }
 
         /// <summary>
-        /// Reads and parses the configured notes file into <see cref="loadedNotes"/>.
+        /// Reads and parses the configured notes file into <see cref="_loadedNotes"/>.
         /// </summary>
-        public void readFile()
+        public void ReadFile()
         {
-            loadedNotes.Clear();
+            _loadedNotes.Clear();
 
-            if (Settings.FilePath == "")
+            if (string.IsNullOrWhiteSpace(Settings.FilePath))
             {
-                currentNode = _emptyNode;
+                CurrentNode = _emptyNode;
                 return;
             }
-            List<string> lines = TxtHelper.readFile(Settings.FilePath);
 
-            List<String> curSplitSection = new List<string>();
-            
+            List<string> lines;
+            try
+            {
+                lines = TxtHelper.readFile(Settings.FilePath);
+            }
+            catch (Exception)
+            {
+                CurrentNode = _emptyNode;
+                Settings.FilePathChanged = false;
+                return;
+            }
+
+            if (lines == null || lines.Count == 0)
+            {
+                CurrentNode = _emptyNode;
+                Settings.FilePathChanged = false;
+                return;
+            }
+
             int? curSplitStart = null;
-            int? curSplitEnd  = null;
+            int? curSplitEnd = null;
 
             int index = 0;
 
@@ -146,14 +166,14 @@ namespace LiveSplit.UI.Components
                 if (curLine.Contains("----------"))
                 {
                     if (curSplitStart == null && curSplitEnd == null)
-                        curSplitStart = index+1;
-
+                    {
+                        curSplitStart = index + 1;
+                    }
                     else if (curSplitStart != null && curSplitEnd == null)
                     {
                         curSplitEnd = index;
-                        curSplitSection = lines.GetRange(curSplitStart.Value, curSplitEnd.Value - curSplitStart.Value);
-
-                        loadedNotes.Add(new SplitNotes(curSplitSection, Settings));
+                        var curSplitSection = lines.GetRange(curSplitStart.Value, curSplitEnd.Value - curSplitStart.Value);
+                        _loadedNotes.Add(new SplitNotes(curSplitSection, Settings));
 
                         curSplitStart = null;
                         curSplitEnd = null;
@@ -168,7 +188,8 @@ namespace LiveSplit.UI.Components
             int afterOffset = 0;
             bool sawExplicit = false;
             int leadingUnnamedIndex = 0;
-            foreach (var node in loadedNotes)
+
+            foreach (var node in _loadedNotes)
             {
                 node.AfterSplitName = null;
                 node.AfterSplitOffset = 0;
@@ -200,7 +221,7 @@ namespace LiveSplit.UI.Components
                 }
             }
 
-            currentNode = loadedNotes.FirstOrDefault() ?? _emptyNode;
+            CurrentNode = _loadedNotes.FirstOrDefault() ?? _emptyNode;
             Settings.FilePathChanged = false;
         }
 
@@ -234,31 +255,31 @@ namespace LiveSplit.UI.Components
         }
 
         /// <summary>
-        /// Updates <see cref="currentNode"/> to match the current split.
+        /// Updates <see cref="CurrentNode"/> to match the current split.
         /// Falls back to <see cref="_emptyNode"/> when no notes exist for a split.
         /// </summary>
         /// <param name="state">Current LiveSplit state.</param>
-        void checkCurrentSplit(LiveSplitState state)
+        private void CheckCurrentSplit(LiveSplitState state)
         {
-            if (loadedNotes.Count == 0)
+            if (_loadedNotes.Count == 0)
             {
-                if (!ReferenceEquals(currentNode, _emptyNode))
-                    currentNode = _emptyNode;
+                if (!ReferenceEquals(CurrentNode, _emptyNode))
+                    CurrentNode = _emptyNode;
                 return;
             }
 
             if (state.CurrentSplit == null)
             {
-                var first = loadedNotes.FirstOrDefault() ?? _emptyNode;
-                if (!ReferenceEquals(currentNode, first))
-                    currentNode = first;
+                var first = _loadedNotes.FirstOrDefault() ?? _emptyNode;
+                if (!ReferenceEquals(CurrentNode, first))
+                    CurrentNode = first;
                 return;
             }
 
             var splitKey = NormalizeSplitKey(state.CurrentSplit.Name);
 
             // 1) Exact match via !!!SplitName
-            var match = loadedNotes.FirstOrDefault(x =>
+            var match = _loadedNotes.FirstOrDefault(x =>
                 !string.IsNullOrWhiteSpace(x.Name) &&
                 string.Equals(NormalizeSplitKey(x.Name), splitKey, StringComparison.OrdinalIgnoreCase));
 
@@ -279,37 +300,35 @@ namespace LiveSplit.UI.Components
                 if (currentIndex >= 0)
                 {
                     // 2a) Leading unnamed sections map directly to split indices
-                    match = loadedNotes.FirstOrDefault(x => x.TargetSplitIndex.HasValue && x.TargetSplitIndex.Value == currentIndex);
+                    match = _loadedNotes.FirstOrDefault(x =>
+                        x.TargetSplitIndex.HasValue && x.TargetSplitIndex.Value == currentIndex);
 
-                    if (match != null)
-                        goto MatchDone;
-
-                    match = loadedNotes.FirstOrDefault(x =>
+                    // 2b) Unnamed sections after a named anchor
+                    if (match == null)
                     {
-                        if (string.IsNullOrWhiteSpace(x.AfterSplitName) || x.AfterSplitOffset <= 0)
-                            return false;
+                        match = _loadedNotes.FirstOrDefault(x =>
+                        {
+                            if (string.IsNullOrWhiteSpace(x.AfterSplitName) || x.AfterSplitOffset <= 0)
+                                return false;
 
-                        // "AfterSplitOffset" describes how far the target split is after the anchor split.
-                        int anchorIndex = currentIndex - x.AfterSplitOffset;
-                        if (anchorIndex < 0 || anchorIndex >= state.Run.Count)
-                            return false;
+                            int anchorIndex = currentIndex - x.AfterSplitOffset;
+                            if (anchorIndex < 0 || anchorIndex >= state.Run.Count)
+                                return false;
 
-                        var anchorName = state.Run[anchorIndex]?.Name;
-                        return string.Equals(
-                            NormalizeSplitKey(anchorName),
-                            NormalizeSplitKey(x.AfterSplitName),
-                            StringComparison.OrdinalIgnoreCase);
-                    });
+                            var anchorName = state.Run[anchorIndex]?.Name;
+                            return string.Equals(
+                                NormalizeSplitKey(anchorName),
+                                NormalizeSplitKey(x.AfterSplitName),
+                                StringComparison.OrdinalIgnoreCase);
+                        });
+                    }
                 }
             }
 
-        MatchDone:
-
             // Final fallback: no notes found for this split.
             var next = match ?? _emptyNode;
-            if (!ReferenceEquals(currentNode, next))
-                currentNode = next;
-
+            if (!ReferenceEquals(CurrentNode, next))
+                CurrentNode = next;
         }
     }
 }

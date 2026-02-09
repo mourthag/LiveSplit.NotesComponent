@@ -1,13 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using LiveSplit.Model;
-using System.Drawing.Drawing2D;
 
 namespace LiveSplit.UI.Components
 {
@@ -15,8 +11,24 @@ namespace LiveSplit.UI.Components
     /// Renders a single note line inside the Notes component.
     /// A note has a type (which determines colors) and a text.
     /// </summary>
-    class Note : IComponent
+    internal class Note : IComponent
     {
+        /// <summary>
+        /// Maps each <see cref="NoteType"/> to a function that retrieves
+        /// the corresponding (background, text) color pair from the settings.
+        /// </summary>
+        private static readonly Dictionary<NoteType, Func<NotesComponentSettings, (Color bg, Color txt)>> ColorMap
+            = new Dictionary<NoteType, Func<NotesComponentSettings, (Color bg, Color txt)>>
+        {
+            [NoteType.LevelUp]      = s => (s.LevelUpBgColor, s.LevelUpTxtColor),
+            [NoteType.ItemTracking] = s => (s.ItemTrackingBgColor, s.ItemTrackingTxtColor),
+            [NoteType.Teleport]     = s => (s.TeleportBgColor, s.TeleportTxtColor),
+            [NoteType.Drop]         = s => (s.DropBgColor, s.DropTxtColor),
+            [NoteType.Kill]         = s => (s.KillBgColor, s.KillTxtColor),
+            [NoteType.Skip]         = s => (s.SkipBgColor, s.SkipTxtColor),
+            [NoteType.Trophy]       = s => (s.TrophyBgColor, s.TrophyTxtColor),
+        };
+
         /// <summary>
         /// Settings instance shared with the parent component (colors, file path, etc.).
         /// </summary>
@@ -61,10 +73,10 @@ namespace LiveSplit.UI.Components
 
         public IDictionary<string, Action> ContextMenuControls => null;
 
-        Color bgColor;
-        Color txtColor;
-        NoteType Type;
-        String Text;
+        private readonly Color _bgColor;
+        private readonly Color _txtColor;
+        private readonly NoteType _type;
+        private readonly string _text;
 
         /// <summary>
         /// Creates a new note.
@@ -75,46 +87,20 @@ namespace LiveSplit.UI.Components
         public Note(NoteType type, string note, NotesComponentSettings settings)
         {
             Settings = settings;
-            Type = type;
-            Text = note;
+            _type = type;
+            _text = note;
 
             VerticalHeight = 10f;
             HorizontalWidth = 50f;
 
-            switch (type)
+            if (ColorMap.TryGetValue(type, out var colorFn))
             {
-                case NoteType.LevelUp:
-                    bgColor = Settings.LevelUpBgColor;
-                    txtColor = Settings.LevelUpTxtColor;
-                    break;
-                case NoteType.ItemTracking:
-                    bgColor = Settings.ItemTrackingBgColor;
-                    txtColor = Settings.ItemTrackingTxtColor;
-                    break;
-                case NoteType.Teleport:
-                    bgColor = Settings.TeleportBgColor;
-                    txtColor = Settings.TeleportTxtColor;
-                    break;
-                case NoteType.Drop:
-                    bgColor = Settings.DropBgColor;
-                    txtColor = Settings.DropTxtColor;
-                    break;
-                case NoteType.Kill:
-                    bgColor = Settings.KillBgColor;
-                    txtColor = Settings.KillTxtColor;
-                    break;
-                case NoteType.Skip:
-                    bgColor = Settings.SkipBgColor;
-                    txtColor = Settings.SkipTxtColor;
-                    break;
-                case NoteType.Trophy:
-                    bgColor = Settings.TrophyBgColor;
-                    txtColor = Settings.TrophyTxtColor;
-                    break;
-                default:
-                    bgColor = Settings.BackgroundColor;
-                    txtColor = Color.White;
-                    break;
+                (_bgColor, _txtColor) = colorFn(Settings);
+            }
+            else
+            {
+                _bgColor = Settings.BackgroundColor;
+                _txtColor = Color.White;
             }
         }
 
@@ -129,10 +115,12 @@ namespace LiveSplit.UI.Components
         public void DrawHorizontal(Graphics g, LiveSplitState state, float height, Region clipRegion)
         {
             // Measure text to inform the layout engine how wide this line wants to be.
-            HorizontalWidth = g.MeasureString(Text, state.LayoutSettings.TextFont).Width;
-            DrawBackgorund(g, HorizontalWidth, height);
-            var textBrush = new SolidBrush(txtColor);
-            g.DrawString(Text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));
+            HorizontalWidth = g.MeasureString(_text, state.LayoutSettings.TextFont).Width;
+            DrawBackground(g, HorizontalWidth, height);
+            using (var textBrush = new SolidBrush(_txtColor))
+            {
+                g.DrawString(_text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));
+            }
         }
 
         /// <summary>
@@ -147,10 +135,12 @@ namespace LiveSplit.UI.Components
         {
             // Height is font-driven; width is controlled by the parent but we still expose MinimumWidth.
             VerticalHeight = state.LayoutSettings.TextFont.GetHeight(g);
-            MinimumWidth = g.MeasureString(Text, state.LayoutSettings.TextFont).Width;
-            DrawBackgorund(g, width, VerticalHeight);
-            var textBrush = new SolidBrush(txtColor);
-            g.DrawString(Text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));
+            MinimumWidth = g.MeasureString(_text, state.LayoutSettings.TextFont).Width;
+            DrawBackground(g, width, VerticalHeight);
+            using (var textBrush = new SolidBrush(_txtColor))
+            {
+                g.DrawString(_text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));
+            }
         }
 
         /// <summary>
@@ -159,10 +149,12 @@ namespace LiveSplit.UI.Components
         /// <param name="g">Graphics surface.</param>
         /// <param name="width">Rectangle width.</param>
         /// <param name="height">Rectangle height.</param>
-        void DrawBackgorund(Graphics g, float width, float height)
+        private void DrawBackground(Graphics g, float width, float height)
         {
-            var bgBrush = new SolidBrush(bgColor);
-            g.FillRectangle(bgBrush, 0, 0, width, height);
+            using (var bgBrush = new SolidBrush(_bgColor))
+            {
+                g.FillRectangle(bgBrush, 0, 0, width, height);
+            }
         }
 
         public Control GetSettingsControl(LayoutMode mode)

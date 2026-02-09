@@ -1,86 +1,109 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Xml;
 using LiveSplit.Model;
 
 namespace LiveSplit.UI.Components
 {
-    class SplitNotes : ComponentRendererComponent
+    /// <summary>
+    /// Represents all notes for a single split section.
+    /// Parses raw text lines into typed <see cref="Note"/> objects.
+    /// </summary>
+    internal class SplitNotes : ComponentRendererComponent
     {
         private const int EmptyNoteLineCount = 1;
 
-        public string Name;
+        /// <summary>
+        /// Maps 3-character line prefixes to their corresponding <see cref="NoteType"/>.
+        /// </summary>
+        private static readonly Dictionary<string, NoteType> MarkerMap
+            = new Dictionary<string, NoteType>
+        {
+            [">>>"] = NoteType.LevelUp,
+            ["$$$"] = NoteType.ItemTracking,
+            ["<<<"] = NoteType.Teleport,
+            ["---"] = NoteType.Drop,
+            ["&&&"] = NoteType.Kill,
+            ["///"] = NoteType.Skip,
+            ["###"] = NoteType.Trophy,
+        };
+
+        /// <summary>
+        /// The split name extracted from a "!!!SplitName" header line (empty if unnamed).
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// For unnamed sections that follow a named section: the name of the preceding named split.
+        /// </summary>
         public string AfterSplitName { get; set; }
+
+        /// <summary>
+        /// How many unnamed sections after the anchor split this section is (1-based).
+        /// </summary>
         public int AfterSplitOffset { get; set; }
+
+        /// <summary>
+        /// For leading unnamed sections (before the first !!!): the direct split index to map to.
+        /// </summary>
         public int? TargetSplitIndex { get; set; }
 
-        List<Note> Notes = new List<Note>();
-        NotesComponentSettings Settings;
+        private readonly List<Note> _notes = new List<Note>();
+        private readonly NotesComponentSettings _settings;
 
-        public SplitNotes(List<String> notes, NotesComponentSettings settings)
+        /// <summary>
+        /// Creates a new <see cref="SplitNotes"/> by parsing the given raw text lines.
+        /// </summary>
+        /// <param name="notes">Raw lines from the notes file for this section.</param>
+        /// <param name="settings">Shared component settings (colors, etc.).</param>
+        public SplitNotes(List<string> notes, NotesComponentSettings settings)
         {
-            Settings = settings;
+            _settings = settings;
             Name = "";
 
             foreach (string curNote in notes)
             {
-                if (!(curNote.Length <= 3))
-                {
-                    string strType = curNote.Substring(0, 3);
-                    NoteType type = NoteType.Comment;
-                    string note = curNote;
+                if (string.IsNullOrWhiteSpace(curNote))
+                    continue;
 
-                    switch (strType) {
-                        case "!!!":
-                            Name = curNote.Substring(3, curNote.Length - 3).Trim();
-                            continue; // Split-Header nur zur Zuordnung, nicht als Note rendern
-                        case "%%%":
-                            continue; // Kommentarzeile im Notes-File komplett ignorieren
-                        case ">>>":
-                            type = NoteType.LevelUp;
-                            break;
-                        case "$$$":
-                            type = NoteType.ItemTracking;
-                            break;
-                        case "<<<":
-                            type = NoteType.Teleport;
-                            break;
-                        case "---":
-                            type = NoteType.Drop;
-                            break;
-                        case "&&&":
-                            type = NoteType.Kill;
-                            break;
-                        case "///":
-                            type = NoteType.Skip;
-                            break;
-                        case "###":
-                            type = NoteType.Trophy;
-                            break;
+                // Lines with 3 or fewer characters can still be valid short notes (e.g. "Hi").
+                // Only attempt marker parsing when the line is long enough.
+                if (curNote.Length > 3)
+                {
+                    string marker = curNote.Substring(0, 3);
+
+                    // Special markers that don't produce a visible note
+                    if (marker == "!!!")
+                    {
+                        Name = curNote.Substring(3).Trim();
+                        continue; // Split-Header nur zur Zuordnung, nicht als Note rendern
                     }
 
-                    if (type != NoteType.Comment)
-                        note = curNote.Substring(3, curNote.Length - 3).Trim();
-                    else
-                        note = note.Trim();
+                    if (marker == "%%%")
+                    {
+                        continue; // Kommentarzeile im Notes-File komplett ignorieren
+                    }
 
-                    Notes.Add(new Note(type, note, Settings));
+                    // Typed note markers
+                    if (MarkerMap.TryGetValue(marker, out NoteType mappedType))
+                    {
+                        string text = curNote.Substring(3).Trim();
+                        _notes.Add(new Note(mappedType, text, _settings));
+                        continue;
+                    }
                 }
+
+                // No marker matched — treat as a plain comment note.
+                _notes.Add(new Note(NoteType.Comment, curNote.Trim(), _settings));
             }
 
-            if (Notes.Count == 0)
+            if (_notes.Count == 0)
             {
                 for (int i = 0; i < EmptyNoteLineCount; i++)
-                    Notes.Add(new Note(NoteType.Comment, "", Settings));
+                    _notes.Add(new Note(NoteType.Comment, "", _settings));
             }
 
-            VisibleComponents = Notes;
+            VisibleComponents = _notes;
         }
     }
-
 }
