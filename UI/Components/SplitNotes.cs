@@ -15,6 +15,9 @@ namespace LiveSplit.UI.Components
         private const int EmptyNoteLineCount = 1;
 
         public string Name;
+        public string AfterSplitName { get; set; }
+        public int AfterSplitOffset { get; set; }
+
         List<Note> Notes = new List<Note>();
         NotesComponentSettings Settings;
 
@@ -29,7 +32,7 @@ namespace LiveSplit.UI.Components
                 {
                     string strType = curNote.Substring(0, 3);
                     NoteType type = NoteType.Comment;
-                    string note = curNote.Substring(0, curNote.Length);
+                    string note = curNote;
 
                     switch (strType) {
                         case "!!!":
@@ -60,8 +63,10 @@ namespace LiveSplit.UI.Components
                             break;
                     }
 
-                    if(type != NoteType.Comment)
+                    if (type != NoteType.Comment)
                         note = curNote.Substring(3, curNote.Length - 3).Trim();
+                    else
+                        note = note.Trim();
 
                     Notes.Add(new Note(type, note, Settings));
                 }

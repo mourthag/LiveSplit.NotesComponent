@@ -130,6 +130,29 @@ namespace LiveSplit.UI.Components
                 index++;
             }
 
+            // Map sections without !!! to the split(s) after the last explicit !!! section
+            string lastExplicit = null;
+            int afterOffset = 0;
+            foreach (var node in loadedNotes)
+            {
+                node.AfterSplitName = null;
+                node.AfterSplitOffset = 0;
+
+                if (!string.IsNullOrWhiteSpace(node.Name))
+                {
+                    lastExplicit = node.Name;
+                    afterOffset = 0;
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(lastExplicit))
+                {
+                    afterOffset++;
+                    node.AfterSplitName = lastExplicit;
+                    node.AfterSplitOffset = afterOffset;
+                }
+            }
+
             currentNode = loadedNotes.FirstOrDefault() ?? _emptyNode;
             Settings.FilePathChanged = false;
         }
@@ -181,8 +204,45 @@ namespace LiveSplit.UI.Components
             }
 
             var splitKey = NormalizeSplitKey(state.CurrentSplit.Name);
+
+            // 1) Exact match via !!!SplitName
             var match = loadedNotes.FirstOrDefault(x =>
+                !string.IsNullOrWhiteSpace(x.Name) &&
                 string.Equals(NormalizeSplitKey(x.Name), splitKey, StringComparison.OrdinalIgnoreCase));
+
+            // 2) If no explicit match: use section(s) that are defined "after" a split (unnamed sections)
+            if (match == null && state.Run != null)
+            {
+                int currentIndex = -1;
+                for (int i = 0; i < state.Run.Count; i++)
+                {
+                    if (ReferenceEquals(state.Run[i], state.CurrentSplit))
+                    {
+                        currentIndex = i;
+                        break;
+                    }
+                }
+
+                if (currentIndex >= 0)
+                {
+                    match = loadedNotes.FirstOrDefault(x =>
+                    {
+                        if (string.IsNullOrWhiteSpace(x.AfterSplitName) || x.AfterSplitOffset <= 0)
+                            return false;
+
+                        int anchorIndex = currentIndex - x.AfterSplitOffset;
+                        if (anchorIndex < 0 || anchorIndex >= state.Run.Count)
+                            return false;
+
+                        var anchorName = state.Run[anchorIndex]?.Name;
+                        return string.Equals(
+                            NormalizeSplitKey(anchorName),
+                            NormalizeSplitKey(x.AfterSplitName),
+                            StringComparison.OrdinalIgnoreCase);
+                    });
+                }
+            }
+
             var next = match ?? _emptyNode;
             if (!ReferenceEquals(currentNode, next))
                 currentNode = next;
