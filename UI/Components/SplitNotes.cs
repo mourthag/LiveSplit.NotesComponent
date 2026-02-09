@@ -17,6 +17,7 @@ namespace LiveSplit.UI.Components
         public string Name;
         public string AfterSplitName { get; set; }
         public int AfterSplitOffset { get; set; }
+        public int? TargetSplitIndex { get; set; }
 
         List<Note> Notes = new List<Note>();
         NotesComponentSettings Settings;

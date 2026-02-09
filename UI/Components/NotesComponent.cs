@@ -133,15 +133,27 @@ namespace LiveSplit.UI.Components
             // Map sections without !!! to the split(s) after the last explicit !!! section
             string lastExplicit = null;
             int afterOffset = 0;
+            bool sawExplicit = false;
+            int leadingUnnamedIndex = 0;
             foreach (var node in loadedNotes)
             {
                 node.AfterSplitName = null;
                 node.AfterSplitOffset = 0;
+                node.TargetSplitIndex = null;
 
                 if (!string.IsNullOrWhiteSpace(node.Name))
                 {
                     lastExplicit = node.Name;
                     afterOffset = 0;
+                    sawExplicit = true;
+                    continue;
+                }
+
+                // If the file starts with unnamed sections (no !!! yet), map them to the first splits.
+                if (!sawExplicit)
+                {
+                    node.TargetSplitIndex = leadingUnnamedIndex;
+                    leadingUnnamedIndex++;
                     continue;
                 }
 
@@ -225,6 +237,12 @@ namespace LiveSplit.UI.Components
 
                 if (currentIndex >= 0)
                 {
+                    // 2a) Leading unnamed sections map directly to split indices
+                    match = loadedNotes.FirstOrDefault(x => x.TargetSplitIndex.HasValue && x.TargetSplitIndex.Value == currentIndex);
+
+                    if (match != null)
+                        goto MatchDone;
+
                     match = loadedNotes.FirstOrDefault(x =>
                     {
                         if (string.IsNullOrWhiteSpace(x.AfterSplitName) || x.AfterSplitOffset <= 0)
@@ -242,6 +260,8 @@ namespace LiveSplit.UI.Components
                     });
                 }
             }
+
+        MatchDone:
 
             var next = match ?? _emptyNode;
             if (!ReferenceEquals(currentNode, next))
