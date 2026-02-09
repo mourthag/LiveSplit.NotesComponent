@@ -134,6 +134,35 @@ namespace LiveSplit.UI.Components
             Settings.FilePathChanged = false;
         }
 
+        private static string NormalizeSplitKey(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return string.Empty;
+
+            value = value.Trim();
+
+            var sb = new StringBuilder(value.Length);
+            bool inWhitespace = false;
+
+            foreach (char c in value)
+            {
+                if (char.IsWhiteSpace(c))
+                {
+                    if (!inWhitespace)
+                    {
+                        sb.Append(' ');
+                        inWhitespace = true;
+                    }
+                    continue;
+                }
+
+                sb.Append(c);
+                inWhitespace = false;
+            }
+
+            return sb.ToString();
+        }
+
         void checkCurrentSplit(LiveSplitState state)
         {
             if (loadedNotes.Count == 0)
@@ -151,7 +180,9 @@ namespace LiveSplit.UI.Components
                 return;
             }
 
-            var match = loadedNotes.FirstOrDefault(x => x.Name == state.CurrentSplit.Name);
+            var splitKey = NormalizeSplitKey(state.CurrentSplit.Name);
+            var match = loadedNotes.FirstOrDefault(x =>
+                string.Equals(NormalizeSplitKey(x.Name), splitKey, StringComparison.OrdinalIgnoreCase));
             var next = match ?? _emptyNode;
             if (!ReferenceEquals(currentNode, next))
                 currentNode = next;
