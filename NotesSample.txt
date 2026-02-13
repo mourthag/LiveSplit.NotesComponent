@@ -1,6 +1,36 @@
-----------
-!!!SplitName
+This is a comment because its outside of a splitblock (starts and ends with 10x "-")
+my splits for test looks like this : 
+split1
+split2
+SplitName
+Split3
+split4
+LastSplit
 
+
+
+vvvv this "------" line is the start of the first splitblock 
+---------------
+This is a frist note 
+for the first split
+and its always
+between two lines of 10x---
+---------------
+^^^^ this "------" line is the end of the splitblock 
+
+
+you also can use !!! to directly target a split. Just use the splitname here
+---------------
+!!!SplitName
+%%% THIS IS A USELESS COMMENT inside a splitblock ! This wont show up inside the Note
+comment for SplitName
+---------------
+
+---------------
+!!!Split3
+%%% There are diffrent categories
+%%% which have diffrent colors
+%%% more inside the options
 >>>Levelup/Attunement
 $$$Item Tracking
 <<<Warp
@@ -9,13 +39,22 @@ $$$Item Tracking
 ///Skip
 ###Tropy
 Any other Comment
-----------
-
-Will not be detected
-Lines must be at least ten "-" to be recognized as splitstart/end
-
+%%% This ------ Lines must be at least ten "-" to be recognized as splitstart/end
+%%% But this can be used as seperator inside the Note 
+-------
+%this is a valid Note
 ---------------
-!!!NextSplit
+
+
+%%% You can also just stick a Note directly after a named split (!!!Split3)
+---------------
+this is a note right after !!!Split3
+---------------
+
+
+%%% and one example for LastSplit
+---------------
+!!!LastSplit
 
 Start as Thief with Firebombs
 ---Drop: Straight Sword Hilt

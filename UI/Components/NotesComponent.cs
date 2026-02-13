@@ -300,28 +300,11 @@ namespace LiveSplit.UI.Components
                 if (currentIndex >= 0)
                 {
                     // 2a) Leading unnamed sections map directly to split indices
-                    match = _loadedNotes.FirstOrDefault(x =>
-                        x.TargetSplitIndex.HasValue && x.TargetSplitIndex.Value == currentIndex);
+                    match = FindByTargetIndex(currentIndex);
 
                     // 2b) Unnamed sections after a named anchor
                     if (match == null)
-                    {
-                        match = _loadedNotes.FirstOrDefault(x =>
-                        {
-                            if (string.IsNullOrWhiteSpace(x.AfterSplitName) || x.AfterSplitOffset <= 0)
-                                return false;
-
-                            int anchorIndex = currentIndex - x.AfterSplitOffset;
-                            if (anchorIndex < 0 || anchorIndex >= state.Run.Count)
-                                return false;
-
-                            var anchorName = state.Run[anchorIndex]?.Name;
-                            return string.Equals(
-                                NormalizeSplitKey(anchorName),
-                                NormalizeSplitKey(x.AfterSplitName),
-                                StringComparison.OrdinalIgnoreCase);
-                        });
-                    }
+                        match = FindByAfterAnchor(currentIndex, state);
                 }
             }
 
@@ -329,6 +312,47 @@ namespace LiveSplit.UI.Components
             var next = match ?? _emptyNode;
             if (!ReferenceEquals(CurrentNode, next))
                 CurrentNode = next;
+        }
+
+        /// <summary>
+        /// Finds a loaded note section that is directly mapped to the given split index
+        /// (leading unnamed sections before the first !!!).
+        /// </summary>
+        private SplitNotes FindByTargetIndex(int splitIndex)
+        {
+            foreach (var node in _loadedNotes)
+            {
+                if (node.TargetSplitIndex.HasValue && node.TargetSplitIndex.Value == splitIndex)
+                    return node;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Finds a loaded note section that is mapped relative to a named anchor split
+        /// (unnamed sections that follow a !!! header).
+        /// </summary>
+        private SplitNotes FindByAfterAnchor(int currentIndex, LiveSplitState state)
+        {
+            foreach (var node in _loadedNotes)
+            {
+                if (string.IsNullOrWhiteSpace(node.AfterSplitName) || node.AfterSplitOffset <= 0)
+                    continue;
+
+                int anchorIndex = currentIndex - node.AfterSplitOffset;
+                if (anchorIndex < 0 || anchorIndex >= state.Run.Count)
+                    continue;
+
+                var anchorName = state.Run[anchorIndex]?.Name;
+                if (string.Equals(
+                    NormalizeSplitKey(anchorName),
+                    NormalizeSplitKey(node.AfterSplitName),
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return node;
+                }
+            }
+            return null;
         }
     }
 }
