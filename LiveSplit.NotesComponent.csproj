@@ -12,19 +12,19 @@
 
   <ItemGroup>
     <Reference Include="LiveSplit.Core">
-      <HintPath>D:\tools\speedruns\LiveSplit\LiveSplit.Core.dll</HintPath>
+      <HintPath>D:\speedruns\LiveSplit\LiveSplit.Core.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="LiveSplit.Plugin">
-      <HintPath>D:\tools\speedruns\LiveSplit\LiveSplit.Plugin.dll</HintPath>
+      <HintPath>D:\speedruns\LiveSplit\LiveSplit.Plugin.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="LiveSplit.View">
-      <HintPath>D:\tools\speedruns\LiveSplit\LiveSplit.View.dll</HintPath>
+      <HintPath>D:\speedruns\LiveSplit\LiveSplit.View.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UpdateManager">
-      <HintPath>D:\tools\speedruns\LiveSplit\UpdateManager.dll</HintPath>
+      <HintPath>D:\speedruns\LiveSplit\UpdateManager.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

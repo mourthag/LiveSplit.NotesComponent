@@ -33,20 +33,6 @@ namespace LiveSplit.UI.Components
         /// </summary>
         public string Name { get; set; }
 
-        /// <summary>
-        /// For unnamed sections that follow a named section: the name of the preceding named split.
-        /// </summary>
-        public string AfterSplitName { get; set; }
-
-        /// <summary>
-        /// How many unnamed sections after the anchor split this section is (1-based).
-        /// </summary>
-        public int AfterSplitOffset { get; set; }
-
-        /// <summary>
-        /// For leading unnamed sections (before the first !!!): the direct split index to map to.
-        /// </summary>
-        public int? TargetSplitIndex { get; set; }
 
         private readonly List<Note> _notes = new List<Note>();
         private readonly NotesComponentSettings _settings;
@@ -76,7 +62,7 @@ namespace LiveSplit.UI.Components
                     if (marker == "!!!")
                     {
                         Name = curNote.Substring(3).Trim();
-                        continue; // Split-Header nur zur Zuordnung, nicht als Note rendern
+                        continue; // Split header: used for mapping only, not rendered as a note
                     }
 
                     if (marker == "%%%")

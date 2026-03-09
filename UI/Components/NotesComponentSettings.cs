@@ -21,6 +21,7 @@ namespace LiveSplit.UI.Components
 
         public string FilePath { get; set; }
         public bool FilePathChanged { get; set; }
+        public bool DebugLogging { get; set; }
 
         public Color BackgroundColor { get; set; }
         public Color LevelUpBgColor { get; set; }
@@ -80,6 +81,7 @@ namespace LiveSplit.UI.Components
             btnClrTrphyTxt.DataBindings.Add("BackColor", this, "TrophyTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
             btnClrTrphyBg.DataBindings.Add("BackColor", this, "TrophyBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
             filePathTxtBox.DataBindings.Add("Text", this, "FilePath", false, DataSourceUpdateMode.OnPropertyChanged);
+            chkDebugLogging.DataBindings.Add("Checked", this, "DebugLogging", false, DataSourceUpdateMode.OnPropertyChanged);
         }
 
         void NotesComponentSettings_Load(object sender, EventArgs e)
@@ -89,6 +91,7 @@ namespace LiveSplit.UI.Components
         {
             var element = (XmlElement)node;
             FilePath = SettingsHelper.ParseString(element["FilePath"]);
+            DebugLogging = SettingsHelper.ParseBool(element["DebugLogging"], false);
             BackgroundColor = SettingsHelper.ParseColor(element["BackgroundColor"]);
             LevelUpTxtColor = SettingsHelper.ParseColor(element["LevelUpTxtColor"]);
             LevelUpBgColor = SettingsHelper.ParseColor(element["LevelUpBgColor"]);
@@ -122,6 +125,7 @@ namespace LiveSplit.UI.Components
         {
             return SettingsHelper.CreateSetting(document, parent, "Version", "1.6") ^
                 SettingsHelper.CreateSetting(document, parent, "FilePath", FilePath) ^
+                SettingsHelper.CreateSetting(document, parent, "DebugLogging", DebugLogging) ^
                 SettingsHelper.CreateSetting(document, parent, "BackgroundColor", BackgroundColor) ^
                 SettingsHelper.CreateSetting(document, parent, "LevelUpTxtColor", LevelUpTxtColor) ^
                 SettingsHelper.CreateSetting(document, parent, "LevelUpBgColor", LevelUpBgColor) ^

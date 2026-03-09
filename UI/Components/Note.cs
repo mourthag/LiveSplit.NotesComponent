@@ -193,7 +193,6 @@ namespace LiveSplit.UI.Components
         Kill,
         Skip,
         Trophy,
-        Title,
         Comment
     }
 }

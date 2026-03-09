@@ -19,11 +19,12 @@ between two lines of 10x---
 ^^^^ this "------" line is the end of the splitblock 
 
 
-you also can use !!! to directly target a split. Just use the splitname here
+You can use !!! to directly target a named split. Just use the splitname after !!!
 ---------------
 !!!SplitName
 %%% THIS IS A USELESS COMMENT inside a splitblock ! This wont show up inside the Note
-comment for SplitName
+This is the actual Note
+for the split: SplitName
 ---------------
 
 ---------------
@@ -42,7 +43,7 @@ Any other Comment
 %%% This ------ Lines must be at least ten "-" to be recognized as splitstart/end
 %%% But this can be used as seperator inside the Note 
 -------
-%this is a valid Note
+%this is a valid Note and will be shown
 ---------------
 
 

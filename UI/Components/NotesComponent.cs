@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -37,6 +38,34 @@ namespace LiveSplit.UI.Components
         /// Reusable empty node to avoid re-allocations / flicker when a split has no notes.
         /// </summary>
         private readonly SplitNotes _emptyNode;
+
+        /// <summary>
+        /// Path of the debug log file (written next to the notes file).
+        /// </summary>
+        private string _debugLogPath;
+
+        /// <summary>
+        /// Tracks the last split logged to avoid flooding the log on every frame.
+        /// </summary>
+        private ISegment _lastLoggedSplit;
+
+        /// <summary>
+        /// True only for the first Update() call after a split change — gates all Log() calls.
+        /// </summary>
+        private bool _shouldLog;
+
+        /// <summary>
+        /// Appends a timestamped line to the debug log.
+        /// </summary>
+        private void Log(string msg)
+        {
+            try
+            {
+                if (!_shouldLog || !Settings.DebugLogging || string.IsNullOrEmpty(_debugLogPath)) return;
+                File.AppendAllText(_debugLogPath, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\r\n");
+            }
+            catch { /* never crash LiveSplit */ }
+        }
 
         /// <summary>
         /// All parsed note sections from the notes file.
@@ -137,6 +166,13 @@ namespace LiveSplit.UI.Components
                 return;
             }
 
+            // Debug log next to the notes file.
+            _debugLogPath = Path.Combine(
+                Path.GetDirectoryName(Settings.FilePath) ?? "",
+                "notes_debug.log");
+            if (Settings.DebugLogging)
+                try { File.WriteAllText(_debugLogPath, $"=== Log start {DateTime.Now} ===\r\n"); } catch { }
+
             List<string> lines;
             try
             {
@@ -182,46 +218,15 @@ namespace LiveSplit.UI.Components
                 index++;
             }
 
-            // Map sections without !!! to the split(s) after the last explicit !!! section.
-            // Additionally: leading unnamed sections (before the first !!!) map to the first splits.
-            string lastExplicit = null;
-            int afterOffset = 0;
-            bool sawExplicit = false;
-            int leadingUnnamedIndex = 0;
-
-            foreach (var node in _loadedNotes)
-            {
-                node.AfterSplitName = null;
-                node.AfterSplitOffset = 0;
-                node.TargetSplitIndex = null;
-
-                if (!string.IsNullOrWhiteSpace(node.Name))
-                {
-                    lastExplicit = node.Name;
-                    afterOffset = 0;
-                    sawExplicit = true;
-                    continue;
-                }
-
-                // If the file starts with unnamed sections (no !!! yet), map them to the first splits.
-                if (!sawExplicit)
-                {
-                    node.TargetSplitIndex = leadingUnnamedIndex;
-                    leadingUnnamedIndex++;
-                    continue;
-                }
-
-                // After an explicit !!! header: the first unnamed section maps to the next split,
-                // the second unnamed section to the split after that, etc.
-                if (!string.IsNullOrWhiteSpace(lastExplicit))
-                {
-                    afterOffset++;
-                    node.AfterSplitName = lastExplicit;
-                    node.AfterSplitOffset = afterOffset;
-                }
-            }
-
             CurrentNode = _loadedNotes.FirstOrDefault() ?? _emptyNode;
+
+            Log($"=== ReadFile done: {_loadedNotes.Count} sections loaded ===");
+            for (int i = 0; i < _loadedNotes.Count; i++)
+            {
+                var n = _loadedNotes[i];
+                var label = string.IsNullOrWhiteSpace(n.Name) ? "(unnamed)" : $"!!!{n.Name}";
+                Log($"  [{i}] {label}");
+            }
             Settings.FilePathChanged = false;
         }
 
@@ -278,81 +283,128 @@ namespace LiveSplit.UI.Components
 
             var splitKey = NormalizeSplitKey(state.CurrentSplit.Name);
 
+            // Only log once per split change.
+            _shouldLog = !ReferenceEquals(state.CurrentSplit, _lastLoggedSplit);
+            if (_shouldLog)
+            {
+                _lastLoggedSplit = state.CurrentSplit;
+                Log($"--- CheckCurrentSplit: split='{state.CurrentSplit.Name}' splitKey='{splitKey}'");
+            }
+
             // 1) Exact match via !!!SplitName
             var match = _loadedNotes.FirstOrDefault(x =>
                 !string.IsNullOrWhiteSpace(x.Name) &&
                 string.Equals(NormalizeSplitKey(x.Name), splitKey, StringComparison.OrdinalIgnoreCase));
 
-            // 2) If no explicit match: use section(s) that are defined "after" a split (unnamed sections)
+            // 2) No explicit match: find the unnamed section that corresponds to this split's
+            //    position relative to the nearest preceding named anchor in the run.
+            if (match != null)
+                Log($"  -> exact match: '{match.Name}'");
+
             if (match == null && state.Run != null)
             {
-                // Determine the index of the current split in the run.
-                int currentIndex = -1;
-                for (int i = 0; i < state.Run.Count; i++)
-                {
-                    if (ReferenceEquals(state.Run[i], state.CurrentSplit))
-                    {
-                        currentIndex = i;
-                        break;
-                    }
-                }
+                int currentRunIndex = FindCurrentSplitIndex(state);
+                Log($"  -> no exact match, currentRunIndex={currentRunIndex}");
 
-                if (currentIndex >= 0)
-                {
-                    // 2a) Leading unnamed sections map directly to split indices
-                    match = FindByTargetIndex(currentIndex);
+                if (currentRunIndex >= 0)
+                    match = FindUnnamedSection(currentRunIndex, state);
 
-                    // 2b) Unnamed sections after a named anchor
-                    if (match == null)
-                        match = FindByAfterAnchor(currentIndex, state);
-                }
+                Log($"  -> unnamed match: {(match == null ? "null" : $"section at notes index (see below)")}");
             }
 
             // Final fallback: no notes found for this split.
             var next = match ?? _emptyNode;
             if (!ReferenceEquals(CurrentNode, next))
                 CurrentNode = next;
+            Log($"  -> CurrentNode set to: {(ReferenceEquals(next, _emptyNode) ? "(emptyNode)" : $"'{next.Name}' (unnamed={string.IsNullOrWhiteSpace(next.Name)})")}");
         }
 
         /// <summary>
-        /// Finds a loaded note section that is directly mapped to the given split index
-        /// (leading unnamed sections before the first !!!).
+        /// Finds the unnamed notes section for a split at <paramref name="currentRunIndex"/>.
+        /// Walks backwards through the run to find the nearest named anchor section,
+        /// then counts how many positions after that anchor the current split is,
+        /// and returns the unnamed notes section at that ordinal in the file.
         /// </summary>
-        private SplitNotes FindByTargetIndex(int splitIndex)
+        private SplitNotes FindUnnamedSection(int currentRunIndex, LiveSplitState state)
         {
-            foreach (var node in _loadedNotes)
+            // Walk backwards in the run to find the nearest split that has an explicit !!! section.
+            int anchorRunIndex = -1;
+            int anchorNotesIndex = -1;
+
+            for (int ri = currentRunIndex - 1; ri >= 0; ri--)
             {
-                if (node.TargetSplitIndex.HasValue && node.TargetSplitIndex.Value == splitIndex)
-                    return node;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Finds a loaded note section that is mapped relative to a named anchor split
-        /// (unnamed sections that follow a !!! header).
-        /// </summary>
-        private SplitNotes FindByAfterAnchor(int currentIndex, LiveSplitState state)
-        {
-            foreach (var node in _loadedNotes)
-            {
-                if (string.IsNullOrWhiteSpace(node.AfterSplitName) || node.AfterSplitOffset <= 0)
-                    continue;
-
-                int anchorIndex = currentIndex - node.AfterSplitOffset;
-                if (anchorIndex < 0 || anchorIndex >= state.Run.Count)
-                    continue;
-
-                var anchorName = state.Run[anchorIndex]?.Name;
-                if (string.Equals(
-                    NormalizeSplitKey(anchorName),
-                    NormalizeSplitKey(node.AfterSplitName),
-                    StringComparison.OrdinalIgnoreCase))
+                var candidateKey = NormalizeSplitKey(state.Run[ri]?.Name);
+                for (int ni = 0; ni < _loadedNotes.Count; ni++)
                 {
-                    return node;
+                    if (!string.IsNullOrWhiteSpace(_loadedNotes[ni].Name) &&
+                        string.Equals(NormalizeSplitKey(_loadedNotes[ni].Name), candidateKey, StringComparison.OrdinalIgnoreCase))
+                    {
+                        anchorRunIndex = ri;
+                        anchorNotesIndex = ni;
+                        goto FoundAnchor;
+                    }
                 }
             }
+
+        FoundAnchor:
+            int offset = (anchorRunIndex >= 0)
+                ? currentRunIndex - anchorRunIndex
+                : currentRunIndex + 1;
+
+            int startNotesIndex = (anchorNotesIndex >= 0) ? anchorNotesIndex + 1 : 0;
+            int unnamedCount = 0;
+
+            Log($"  FindUnnamedSection: anchorRunIndex={anchorRunIndex}, anchorNotesIndex={anchorNotesIndex}, offset={offset}, startNotesIndex={startNotesIndex}");
+
+            for (int ni = startNotesIndex; ni < _loadedNotes.Count; ni++)
+            {
+                if (!string.IsNullOrWhiteSpace(_loadedNotes[ni].Name))
+                {
+                    Log($"    [ni={ni}] hit named section '{_loadedNotes[ni].Name}', stopping.");
+                    break;
+                }
+
+                unnamedCount++;
+                Log($"    [ni={ni}] unnamed section #{unnamedCount} (need offset={offset})");
+                if (unnamedCount == offset)
+                {
+                    Log($"    -> FOUND at ni={ni}");
+                    return _loadedNotes[ni];
+                }
+            }
+
+            Log($"  FindUnnamedSection: no match found.");
             return null;
         }
+
+        private static int FindCurrentSplitIndex(LiveSplitState state)
+        {
+            if (state?.Run == null || state.CurrentSplit == null)
+                return -1;
+
+            // Preferred: reference equality (fast and unambiguous).
+            for (int i = 0; i < state.Run.Count; i++)
+            {
+                if (ReferenceEquals(state.Run[i], state.CurrentSplit))
+                    return i;
+            }
+
+            // Fallback: compare by normalized name.
+            var currentNameKey = NormalizeSplitKey(state.CurrentSplit.Name);
+            if (currentNameKey.Length == 0)
+                return -1;
+
+            for (int i = 0; i < state.Run.Count; i++)
+            {
+                if (string.Equals(
+                        NormalizeSplitKey(state.Run[i]?.Name),
+                        currentNameKey,
+                        StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
+
+            return -1;
+        }
+
     }
 }

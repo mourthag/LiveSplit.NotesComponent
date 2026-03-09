@@ -31,6 +31,7 @@ namespace LiveSplit.UI.Components
         private void InitializeComponent()
         {
             this.mainTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            this.chkDebugLogging = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.button1 = new System.Windows.Forms.Button();
             this.filePathTxtBox = new System.Windows.Forms.TextBox();
@@ -81,14 +82,15 @@ namespace LiveSplit.UI.Components
             this.mainTableLayout.Controls.Add(this.tableLayoutPanel2, 0, 2);
             this.mainTableLayout.Controls.Add(this.colorsGroupBox, 0, 1);
             this.mainTableLayout.Controls.Add(this.tableLayoutPanel1, 0, 0);
+            this.mainTableLayout.Controls.Add(this.chkDebugLogging, 0, 3);
             this.mainTableLayout.Location = new System.Drawing.Point(0, 0);
             this.mainTableLayout.Name = "mainTableLayout";
             this.mainTableLayout.RowCount = 4;
             this.mainTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 22.81746F));
             this.mainTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 77.18254F));
             this.mainTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 82F));
-            this.mainTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.mainTableLayout.Size = new System.Drawing.Size(601, 525);
+            this.mainTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
+            this.mainTableLayout.Size = new System.Drawing.Size(601, 535);
             this.mainTableLayout.TabIndex = 0;
             // 
             // tableLayoutPanel2
@@ -502,13 +504,24 @@ namespace LiveSplit.UI.Components
             this.label1.Text = "BackgroundColor";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // chkDebugLogging
+            // 
+            this.chkDebugLogging.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.chkDebugLogging.AutoSize = true;
+            this.chkDebugLogging.Location = new System.Drawing.Point(3, 5);
+            this.chkDebugLogging.Name = "chkDebugLogging";
+            this.chkDebugLogging.Size = new System.Drawing.Size(160, 20);
+            this.chkDebugLogging.TabIndex = 30;
+            this.chkDebugLogging.Text = "Enable debug logging";
+            this.chkDebugLogging.UseVisualStyleBackColor = true;
+            // 
             // NotesComponentSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.mainTableLayout);
             this.Name = "NotesComponentSettings";
-            this.Size = new System.Drawing.Size(601, 525);
+            this.Size = new System.Drawing.Size(601, 535);
             this.mainTableLayout.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
@@ -560,5 +573,6 @@ namespace LiveSplit.UI.Components
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.TextBox filePathTxtBox;
+        private System.Windows.Forms.CheckBox chkDebugLogging;
     }
 }
