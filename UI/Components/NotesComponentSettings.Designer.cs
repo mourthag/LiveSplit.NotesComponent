@@ -33,6 +33,10 @@ namespace LiveSplit.UI.Components
             this.mainTableLayout = new System.Windows.Forms.TableLayoutPanel();
             this.chkDebugLogging = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            this.labelCmntTxt = new System.Windows.Forms.Label();
+            this.btnClrCmntTxt = new System.Windows.Forms.Button();
+            this.labelCmntBg = new System.Windows.Forms.Label();
+            this.btnClrCmntBg = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.filePathTxtBox = new System.Windows.Forms.TextBox();
             this.colorsGroupBox = new System.Windows.Forms.GroupBox();
@@ -160,9 +164,13 @@ namespace LiveSplit.UI.Components
             this.colorsGroupBox.Controls.Add(this.label6);
             this.colorsGroupBox.Controls.Add(this.label2);
             this.colorsGroupBox.Controls.Add(this.btnClrLvlupTxt);
+            this.colorsGroupBox.Controls.Add(this.labelCmntTxt);
+            this.colorsGroupBox.Controls.Add(this.btnClrCmntTxt);
+            this.colorsGroupBox.Controls.Add(this.labelCmntBg);
+            this.colorsGroupBox.Controls.Add(this.btnClrCmntBg);
             this.colorsGroupBox.Location = new System.Drawing.Point(3, 99);
             this.colorsGroupBox.Name = "colorsGroupBox";
-            this.colorsGroupBox.Size = new System.Drawing.Size(595, 281);
+            this.colorsGroupBox.Size = new System.Drawing.Size(595, 312);
             this.colorsGroupBox.TabIndex = 0;
             this.colorsGroupBox.TabStop = false;
             this.colorsGroupBox.Text = "Colors";
@@ -463,6 +471,7 @@ namespace LiveSplit.UI.Components
             this.btnClrLvlupTxt.TabIndex = 2;
             this.btnClrLvlupTxt.UseVisualStyleBackColor = false;
             this.btnClrLvlupTxt.Click += new System.EventHandler(this.ColorButtonClick);
+            this.btnClrCmntTxt.Click += new System.EventHandler(this.ColorButtonClick);
             // 
             // tableLayoutPanel1
             // 
@@ -514,6 +523,43 @@ namespace LiveSplit.UI.Components
             this.chkDebugLogging.TabIndex = 30;
             this.chkDebugLogging.Text = "Enable debug logging";
             this.chkDebugLogging.UseVisualStyleBackColor = true;
+            // 
+            // labelCmntTxt
+            // 
+            this.labelCmntTxt.AutoSize = true;
+            this.labelCmntTxt.Location = new System.Drawing.Point(30, 238);
+            this.labelCmntTxt.Name = "labelCmntTxt";
+            this.labelCmntTxt.TabIndex = 31;
+            this.labelCmntTxt.Text = "Default Text Color";
+            // 
+            // btnClrCmntTxt
+            // 
+            this.btnClrCmntTxt.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.btnClrCmntTxt.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnClrCmntTxt.Location = new System.Drawing.Point(224, 235);
+            this.btnClrCmntTxt.Name = "btnClrCmntTxt";
+            this.btnClrCmntTxt.Size = new System.Drawing.Size(23, 23);
+            this.btnClrCmntTxt.TabIndex = 32;
+            this.btnClrCmntTxt.UseVisualStyleBackColor = false;
+            // 
+            // labelCmntBg
+            // 
+            this.labelCmntBg.AutoSize = true;
+            this.labelCmntBg.Location = new System.Drawing.Point(296, 238);
+            this.labelCmntBg.Name = "labelCmntBg";
+            this.labelCmntBg.TabIndex = 33;
+            this.labelCmntBg.Text = "Default Background Color";
+            // 
+            // btnClrCmntBg
+            // 
+            this.btnClrCmntBg.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.btnClrCmntBg.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnClrCmntBg.Location = new System.Drawing.Point(512, 235);
+            this.btnClrCmntBg.Name = "btnClrCmntBg";
+            this.btnClrCmntBg.Size = new System.Drawing.Size(23, 23);
+            this.btnClrCmntBg.TabIndex = 34;
+            this.btnClrCmntBg.UseVisualStyleBackColor = false;
+            this.btnClrCmntBg.Click += new System.EventHandler(this.ColorButtonClick);
             // 
             // NotesComponentSettings
             // 
@@ -574,5 +620,9 @@ namespace LiveSplit.UI.Components
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.TextBox filePathTxtBox;
         private System.Windows.Forms.CheckBox chkDebugLogging;
+        private System.Windows.Forms.Label labelCmntTxt;
+        private System.Windows.Forms.Button btnClrCmntTxt;
+        private System.Windows.Forms.Label labelCmntBg;
+        private System.Windows.Forms.Button btnClrCmntBg;
     }
 }

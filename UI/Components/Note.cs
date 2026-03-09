@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Xml;
 using LiveSplit.Model;
@@ -73,10 +74,14 @@ namespace LiveSplit.UI.Components
 
         public IDictionary<string, Action> ContextMenuControls => null;
 
-        private readonly Color _bgColor;
-        private readonly Color _txtColor;
         private readonly NoteType _type;
         private readonly string _text;
+
+        /// <summary>Gets the current (background, text) color pair by reading live from Settings.</summary>
+        private (Color bg, Color txt) Colors =>
+            ColorMap.TryGetValue(_type, out var fn)
+                ? fn(Settings)
+                : (Settings.BackgroundColor, Settings.CommentTxtColor);
 
         /// <summary>
         /// Creates a new note.
@@ -92,16 +97,6 @@ namespace LiveSplit.UI.Components
 
             VerticalHeight = 10f;
             HorizontalWidth = 50f;
-
-            if (ColorMap.TryGetValue(type, out var colorFn))
-            {
-                (_bgColor, _txtColor) = colorFn(Settings);
-            }
-            else
-            {
-                _bgColor = Settings.BackgroundColor;
-                _txtColor = Color.White;
-            }
         }
 
         /// <summary>
@@ -114,10 +109,10 @@ namespace LiveSplit.UI.Components
         /// <param name="clipRegion">Clip region (unused).</param>
         public void DrawHorizontal(Graphics g, LiveSplitState state, float height, Region clipRegion)
         {
-            // Measure text to inform the layout engine how wide this line wants to be.
+            var (bgColor, txtColor) = Colors;
             HorizontalWidth = g.MeasureString(_text, state.LayoutSettings.TextFont).Width;
-            DrawBackground(g, HorizontalWidth, height);
-            using (var textBrush = new SolidBrush(_txtColor))
+            DrawBackground(g, bgColor, HorizontalWidth, height);
+            using (var textBrush = new SolidBrush(txtColor))
             {
                 g.DrawString(_text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));
             }
@@ -133,11 +128,11 @@ namespace LiveSplit.UI.Components
         /// <param name="clipRegion">Clip region (unused).</param>
         public void DrawVertical(Graphics g, LiveSplitState state, float width, Region clipRegion)
         {
-            // Height is font-driven; width is controlled by the parent but we still expose MinimumWidth.
+            var (bgColor, txtColor) = Colors;
             VerticalHeight = state.LayoutSettings.TextFont.GetHeight(g);
             MinimumWidth = g.MeasureString(_text, state.LayoutSettings.TextFont).Width;
-            DrawBackground(g, width, VerticalHeight);
-            using (var textBrush = new SolidBrush(_txtColor))
+            DrawBackground(g, bgColor, width, VerticalHeight);
+            using (var textBrush = new SolidBrush(txtColor))
             {
                 g.DrawString(_text, state.LayoutSettings.TextFont, textBrush, new PointF(0, 0));
             }
@@ -149,12 +144,15 @@ namespace LiveSplit.UI.Components
         /// <param name="g">Graphics surface.</param>
         /// <param name="width">Rectangle width.</param>
         /// <param name="height">Rectangle height.</param>
-        private void DrawBackground(Graphics g, float width, float height)
+        private void DrawBackground(Graphics g, Color bgColor, float width, float height)
         {
-            using (var bgBrush = new SolidBrush(_bgColor))
+            var prevMode = g.CompositingMode;
+            g.CompositingMode = CompositingMode.SourceOver;
+            using (var bgBrush = new SolidBrush(bgColor))
             {
                 g.FillRectangle(bgBrush, 0, 0, width, height);
             }
+            g.CompositingMode = prevMode;
         }
 
         public Control GetSettingsControl(LayoutMode mode)

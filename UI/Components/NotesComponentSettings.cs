@@ -37,8 +37,7 @@ namespace LiveSplit.UI.Components
         public Color SkipBgColor { get; set; }
         public Color SkipTxtColor { get; set; }
         public Color TrophyBgColor { get; set; }
-        public Color TrophyTxtColor { get; set; }
-
+        public Color TrophyTxtColor { get; set; }        public Color CommentTxtColor { get; set; }
         public NotesComponentSettings(LiveSplitState state)
         {
             InitializeComponent();
@@ -49,6 +48,8 @@ namespace LiveSplit.UI.Components
             FilePathChanged = true;
 
             BackgroundColor = Color.Black;
+
+            CommentTxtColor = Color.White;
 
             LevelUpTxtColor = Color.FromArgb(255,255,255);
             ItemTrackingTxtColor = Color.FromArgb(255, 255, 255);
@@ -79,8 +80,8 @@ namespace LiveSplit.UI.Components
             btnClrSkpTxt.DataBindings.Add("BackColor", this, "SkipTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
             btnClrSkpBg.DataBindings.Add("BackColor", this, "SkipBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
             btnClrTrphyTxt.DataBindings.Add("BackColor", this, "TrophyTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            btnClrTrphyBg.DataBindings.Add("BackColor", this, "TrophyBgColor", false, DataSourceUpdateMode.OnPropertyChanged);
-            filePathTxtBox.DataBindings.Add("Text", this, "FilePath", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrTrphyBg.DataBindings.Add("BackColor", this, "TrophyBgColor", false, DataSourceUpdateMode.OnPropertyChanged);            btnClrCmntTxt.DataBindings.Add("BackColor", this, "CommentTxtColor", false, DataSourceUpdateMode.OnPropertyChanged);
+            btnClrCmntBg.DataBindings.Add("BackColor", this, "BackgroundColor", false, DataSourceUpdateMode.OnPropertyChanged);            filePathTxtBox.DataBindings.Add("Text", this, "FilePath", false, DataSourceUpdateMode.OnPropertyChanged);
             chkDebugLogging.DataBindings.Add("Checked", this, "DebugLogging", false, DataSourceUpdateMode.OnPropertyChanged);
         }
 
@@ -106,6 +107,7 @@ namespace LiveSplit.UI.Components
             SkipTxtColor = SettingsHelper.ParseColor(element["SkipTxtColor"]);
             SkipBgColor = SettingsHelper.ParseColor(element["SkipBgColor"]);
             TrophyTxtColor = SettingsHelper.ParseColor(element["TrophyTxtColor"]);
+            CommentTxtColor = SettingsHelper.ParseColor(element["CommentTxtColor"], Color.White);
             TrophyBgColor = SettingsHelper.ParseColor(element["TrophyBgColor"]);
         }
 
@@ -140,7 +142,8 @@ namespace LiveSplit.UI.Components
                 SettingsHelper.CreateSetting(document, parent, "SkipTxtColor", SkipTxtColor) ^
                 SettingsHelper.CreateSetting(document, parent, "SkipBgColor", SkipBgColor) ^
                 SettingsHelper.CreateSetting(document, parent, "TrophyTxtColor", TrophyTxtColor) ^
-                SettingsHelper.CreateSetting(document, parent, "TrophyBgColor", TrophyBgColor);
+                SettingsHelper.CreateSetting(document, parent, "TrophyBgColor", TrophyBgColor) ^
+                SettingsHelper.CreateSetting(document, parent, "CommentTxtColor", CommentTxtColor);
 
         }
 
