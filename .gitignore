@@ -215,3 +215,6 @@ $RECYCLE.BIN/
 *.msp
 *.zip
 /build.ps1
+
+# LiveSplit DLLs
+dlls/*.dll

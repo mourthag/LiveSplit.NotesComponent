@@ -11,7 +11,6 @@
 ## v1.1
 * Fixed some memory leaks
 * Fixed window resizing
-* Moved to VS Code
 * Moved to VS Code C# Dev Kit
 * Added some new syntax (see example notes)
 * Added `%%%` comments

@@ -1,0 +1,6 @@
+Please copy paste dlls from Livesplit folder into this one 
+Currently needed : 
+* LiveSplit.Core.dll
+* LiveSplit.Plugin.dll
+* LiveSplit.View.dll
+* UpdateManager.dll

@@ -67,7 +67,7 @@ namespace LiveSplit.UI.Components
 
                     if (marker == "%%%")
                     {
-                        continue; // Kommentarzeile im Notes-File komplett ignorieren
+                        continue; // just ignore %%% comments completely
                     }
 
                     // Typed note markers
